@@ -20,6 +20,23 @@
                            placeholder="Type product name... (Press F2 to focus)" autofocus>
                 </div>
                 <div id="searchResults" class="list-group"></div>
+                
+                <!-- Frequently Bought Items -->
+                <div class="mt-4">
+                    <h6 class="text-muted mb-3"><i class="bi bi-lightning-charge"></i> Frequently Bought Items</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach($frequentProducts as $product)
+                        <button class="btn btn-outline-primary" 
+                                onclick="addToCart({{ $product->id }}, '{{ addslashes($product->name) }}', {{ $product->selling_price }}, {{ $product->current_stock }})">
+                            {{ $product->name }}
+                            <small class="d-block text-muted">Tsh {{ number_format($product->selling_price) }}</small>
+                        </button>
+                        @endforeach
+                        @if($frequentProducts->isEmpty())
+                        <p class="text-muted small">No sales data yet.</p>
+                        @endif
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -59,11 +76,11 @@
                 </div>
                 <div class="d-flex justify-content-between mb-2">
                     <strong>Discount:</strong>
-                    <span id="cartDiscount">UGX 0</span>
+                    <span id="cartDiscount">Tsh 0</span>
                 </div>
                 <div class="d-flex justify-content-between mb-3">
                     <h5>Total:</h5>
-                    <h5 id="cartTotal">UGX 0</h5>
+                    <h5 id="cartTotal">Tsh 0</h5>
                 </div>
                 <button type="button" class="btn btn-success btn-lg w-100" onclick="checkout()">
                     <i class="bi bi-check-circle"></i> Complete Sale
@@ -124,7 +141,7 @@ function displaySearchResults(products) {
 
 function addToCart(productId, productName, price, stock) {
     if(stock <= 0) {
-        alert('Product is out of stock');
+        Swal.fire('Out of Stock', 'This product is currently unavailable.', 'error');
         return;
     }
     
@@ -183,8 +200,8 @@ function updateCartDisplay() {
                 </div>
             </div>
             <div class="text-end mt-2">
-                <small>UGX ${numberFormat(item.price)} × ${item.quantity} = </small>
-                <strong>UGX ${numberFormat(item.price * item.quantity - item.discount)}</strong>
+                <small>Tsh ${numberFormat(item.price)} × ${item.quantity} = </small>
+                <strong>Tsh ${numberFormat(item.price * item.quantity - item.discount)}</strong>
             </div>
         </div>
     `).join('');
@@ -195,7 +212,7 @@ function updateCartDisplay() {
 function updateQuantity(cartId, quantity) {
     quantity = parseInt(quantity);
     if(quantity > cart[cartId].stock) {
-        alert(`Only ${cart[cartId].stock} units available`);
+        Swal.fire('Stock Limit Reached', `Only ${cart[cartId].stock} units available`, 'warning');
         return;
     }
     cart[cartId].quantity = quantity;
@@ -213,10 +230,20 @@ function removeFromCart(cartId) {
 }
 
 function clearCart() {
-    if(confirm('Clear all items from cart?')) {
-        cart = {};
-        updateCartDisplay();
-    }
+    Swal.fire({
+        title: 'Clear Cart?',
+        text: 'Are you sure you want to remove all items?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, Clear it'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            cart = {};
+            updateCartDisplay();
+        }
+    });
 }
 
 function updateCartTotals() {
@@ -226,20 +253,50 @@ function updateCartTotals() {
     const overallDiscount = parseFloat(document.getElementById('overallDiscount').value) || 0;
     const total = subtotal - overallDiscount;
     
-    document.getElementById('cartSubtotal').textContent = 'UGX ' + numberFormat(subtotal);
-    document.getElementById('cartDiscount').textContent = 'UGX ' + numberFormat(overallDiscount);
-    document.getElementById('cartTotal').textContent = 'UGX ' + numberFormat(total);
+    document.getElementById('cartSubtotal').textContent = 'Tsh ' + numberFormat(subtotal);
+    document.getElementById('cartDiscount').textContent = 'Tsh ' + numberFormat(overallDiscount);
+    document.getElementById('cartTotal').textContent = 'Tsh ' + numberFormat(total);
 }
 
 function checkout() {
     if(Object.keys(cart).length === 0) {
-        alert('Cart is empty');
+        Swal.fire('Cart is Empty', 'Please add items to the cart first.', 'warning');
         return;
     }
     
     const paymentMethod = document.getElementById('paymentMethod').value;
+    const paymentLabel = document.getElementById('paymentMethod').options[document.getElementById('paymentMethod').selectedIndex].text;
     const overallDiscount = parseFloat(document.getElementById('overallDiscount').value) || 0;
     
+    // Calculate totals for display
+    const subtotal = Object.values(cart).reduce((sum, item) => 
+        sum + (item.price * item.quantity - item.discount), 0);
+    const total = subtotal - overallDiscount;
+    const itemCount = Object.values(cart).reduce((sum, item) => sum + item.quantity, 0);
+
+    Swal.fire({
+        title: 'Confirm Sale?',
+        html: `
+            <div class="text-start">
+                <p><strong>Items:</strong> ${itemCount}</p>
+                <p><strong>Total:</strong> Tsh ${numberFormat(total)}</p>
+                <p><strong>Payment:</strong> ${paymentLabel}</p>
+            </div>
+        `,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#198754',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, Complete Sale',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            submitSale(paymentMethod, overallDiscount);
+        }
+    });
+}
+
+function submitSale(paymentMethod, overallDiscount) {
     // Submit checkout form with cart data
     const form = document.createElement('form');
     form.method = 'POST';

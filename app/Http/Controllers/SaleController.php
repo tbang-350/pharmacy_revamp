@@ -32,7 +32,15 @@ class SaleController extends Controller
 
     public function create()
     {
-        return view('sales.create');
+        // Fetch top 5 frequently bought items
+        $frequentProducts = Product::select('products.*', DB::raw('SUM(sale_items.quantity) as total_sold'))
+            ->join('sale_items', 'products.id', '=', 'sale_items.product_id')
+            ->groupBy('products.id')
+            ->orderByDesc('total_sold')
+            ->limit(5)
+            ->get();
+
+        return view('sales.create', compact('frequentProducts'));
     }
 
     public function searchProduct(Request$request)
@@ -209,7 +217,7 @@ class SaleController extends Controller
 
             DB::commit();
 
-            return redirect()->route('sales.index')->with('success', 'Sale completed successfully');
+            return redirect()->route('sales.create')->with('success', 'Sale completed successfully');
 
         } catch (\Exception $e) {
             DB::rollback();
