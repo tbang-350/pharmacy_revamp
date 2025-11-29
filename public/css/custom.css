@@ -1,0 +1,163 @@
+/* Custom Styles for Pharmacy Management System */
+
+:root {
+    --primary-color: #0d6efd;
+    --sidebar-width: 250px;
+}
+
+/* Sidebar */
+.sidebar {
+    position: fixed;
+    top: 56px;
+    bottom: 0;
+    left: 0;
+    z-index: 100;
+    padding: 0;
+    box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+    overflow-y: auto;
+}
+
+.sidebar .nav-link {
+    font-weight: 500;
+    color: #333;
+    padding: 0.75rem 1rem;
+    border-left: 3px solid transparent;
+}
+
+.sidebar .nav-link:hover {
+    background-color: #f8f9fa;
+    border-left-color: var(--primary-color);
+}
+
+.sidebar .nav-link.active {
+    color: var(--primary-color);
+    background-color: #e7f1ff;
+    border-left-color: var(--primary-color);
+}
+
+.sidebar .nav-link i {
+    margin-right: 8px;
+}
+
+.sidebar-heading {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+}
+
+/* Main content */
+main {
+    margin-top: 56px;
+}
+
+/* Make buttons larger for fast operation */
+.btn-lg {
+    padding: 0.75rem 1.5rem;
+    font-size: 1.1rem;
+}
+
+/* Form controls - larger for easier input */
+.form-control-lg {
+    font-size: 1.1rem;
+    padding: 0.75rem 1rem;
+}
+
+/* High contrast for readability */
+.table {
+    font-size: 0.95rem;
+}
+
+.table thead th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+}
+
+/* Cart styling */
+#cartItems {
+    min-height: 100px;
+}
+
+.form-label-sm {
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+}
+
+/* Search results */
+#searchResults .list-group-item {
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+#searchResults .list-group-item:hover {
+    background-color: #e7f1ff;
+    transform: translateX(5px);
+}
+
+/* Alert badges */
+.badge {
+    padding: 0.4em 0.8em;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .sidebar {
+        position: relative;
+        top: 0;
+    }
+    
+    main {
+        margin-top: 0;
+    }
+}
+
+/* Fast operation highlights */
+.btn-success {
+    box-shadow: 0 4px 6px rgba(25, 135, 84, 0.3);
+}
+
+.btn-primary {
+    box-shadow: 0 4px 6px rgba(13, 110, 253, 0.3);
+}
+
+/* Loading states */
+.btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Print styles for receipts */
+@media print {
+    .sidebar,
+    .navbar,
+    .btn,
+    .no-print {
+        display: none !important;
+    }
+    
+    body {
+        margin: 0;
+        padding: 20px;
+    }
+}
+
+/* Focus states for keyboard navigation */
+input:focus,
+select:focus,
+button:focus {
+    outline: 3px solid rgba(13, 110, 253, 0.3);
+    outline-offset: 2px;
+}
+
+/* Quick action buttons */
+.btn-group .btn {
+    margin-right: 0.5rem;
+}
+
+/* Status indicators */
+.table-warning {
+    background-color: #fff3cd !important;
+}
+
+.table-danger {
+    background-color: #f8d7da !important;
+}
