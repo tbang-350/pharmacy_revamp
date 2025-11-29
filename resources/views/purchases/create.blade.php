@@ -87,6 +87,11 @@
                                     <label class="form-label">Expiry</label>
                                     <input type="date" class="form-control" name="items[0][expiry_date]">
                                 </div>
+                                <div class="col-md-1 d-flex align-items-end">
+                                    <button type="button" class="btn btn-danger w-100 remove-item" onclick="removePurchaseItem(this)" style="display: none;">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -102,7 +107,7 @@
 
     <!-- Excel Import Tab -->
     <div class="tab-pane fade" id="excel">
-        <form method="POST" action="{{ route('purchases.import-excel') }}" enctype="multipart/form-data">
+        <form method="POST" action="{{ route('purchases.import-excel') }}" enctype="multipart/form-data" onsubmit="showImportLoader()">
             @csrf
             <div class="row mb-3">
                 <div class="col-md-4">
@@ -127,7 +132,12 @@
 
             <div class="mb-3">
                 <label class="form-label">Excel File</label>
-                <input type="file" class="form-control" name="excel_file" accept=".xlsx,.xls,.csv" required>
+                <div class="input-group">
+                    <input type="file" class="form-control" name="excel_file" accept=".xlsx,.xls,.csv" required>
+                    <a href="{{ route('purchases.template') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-download"></i> Download Template
+                    </a>
+                </div>
             </div>
 
             <button type="submit" class="btn btn-primary btn-lg">Import Purchase</button>
@@ -142,17 +152,30 @@ let itemCount = 1;
 
 function addPurchaseItem() {
     const itemsDiv = document.getElementById('purchaseItems');
-    const newItem = document.querySelector('.purchase-item').cloneNode(true);
+    const firstItem = itemsDiv.querySelector('.purchase-item');
+    const newItem = firstItem.cloneNode(true);
     
-    // Update input names
+    // Update input names and clear values
     newItem.querySelectorAll('input, select').forEach(input => {
-        const name = input.name.replace('[0]', `[${itemCount}]`);
+        const name = input.name.replace(/\[\d+\]/, `[${itemCount}]`);
         input.name = name;
         input.value = '';
     });
     
+    // Show remove button
+    newItem.querySelector('.remove-item').style.display = 'block';
+    
     itemsDiv.appendChild(newItem);
     itemCount++;
+}
+
+function removePurchaseItem(button) {
+    const item = button.closest('.purchase-item');
+    const itemsDiv = document.getElementById('purchaseItems');
+    
+    if(itemsDiv.querySelectorAll('.purchase-item').length > 1) {
+        item.remove();
+    }
 }
 
 // Product autocomplete
@@ -174,5 +197,16 @@ document.addEventListener('input', function(e) {
             });
     }
 });
+
+function showImportLoader() {
+    Swal.fire({
+        title: 'Importing Purchases',
+        text: 'Please wait while we process your file...',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+}
 </script>
 @endpush

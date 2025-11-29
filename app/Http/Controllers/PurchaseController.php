@@ -209,4 +209,26 @@ class PurchaseController extends Controller
             ];
         }));
     }
+
+    public function downloadTemplate()
+    {
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="purchase_template.csv"',
+        ];
+
+        $columns = ['Product Name', 'Category', 'Quantity', 'Buying Price', 'Selling Price', 'Batch Number', 'Expiry Date (YYYY-MM-DD)'];
+
+        $callback = function() use ($columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+            
+            // Add sample row
+            fputcsv($file, ['Paracetamol 500mg', 'Painkillers', '100', '500', '800', 'BATCH001', date('Y-m-d', strtotime('+1 year'))]);
+            
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
 }

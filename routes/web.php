@@ -59,7 +59,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('purchases', [PurchaseController::class, 'index'])->name('purchases.index');
     Route::get('purchases/create', [PurchaseController::class, 'create'])->name('purchases.create');
     Route::post('purchases', [PurchaseController::class, 'store'])->name('purchases.store');
-    Route::post('purchases/import-excel', [PurchaseController::class, 'importExcel'])->name('purchases.import-excel');
+    Route::get('/purchases/template', [PurchaseController::class, 'downloadTemplate'])->name('purchases.template');
+    Route::post('/purchases/import', [PurchaseController::class, 'importExcel'])->name('purchases.import-excel');
     Route::get('purchases/search-product', [PurchaseController::class, 'searchProduct'])->name('purchases.search-product');
 
     // Reports

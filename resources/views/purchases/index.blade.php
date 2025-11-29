@@ -50,6 +50,65 @@
                         <td>{{ $purchase->items->count() }}</td>
                         <td><strong>Tsh {{ number_format($purchase->total_amount, 0) }}</strong></td>
                         <td>{{ $purchase->user->name }}</td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-info text-white" 
+                                    data-bs-toggle="modal" data-bs-target="#purchaseModal{{ $purchase->id }}">
+                                <i class="bi bi-eye"></i> View Details
+                            </button>
+
+                            <!-- Purchase Details Modal -->
+                            <div class="modal fade" id="purchaseModal{{ $purchase->id }}" tabindex="-1">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Purchase #{{ $purchase->id }} Details</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="row mb-3">
+                                                <div class="col-md-6">
+                                                    <strong>Date:</strong> {{ $purchase->purchase_date->format('d M Y') }}<br>
+                                                    <strong>Supplier:</strong> {{ $purchase->supplier->name ?? 'N/A' }}
+                                                </div>
+                                                <div class="col-md-6 text-end">
+                                                    <strong>Created By:</strong> {{ $purchase->user->name }}<br>
+                                                    <strong>Total:</strong> Tsh {{ number_format($purchase->total_amount, 0) }}
+                                                </div>
+                                            </div>
+                                            <div class="table-responsive">
+                                                <table class="table table-sm table-bordered">
+                                                    <thead class="table-light">
+                                                        <tr>
+                                                            <th>Product</th>
+                                                            <th>Qty</th>
+                                                            <th>Buying Price</th>
+                                                            <th>Selling Price</th>
+                                                            <th>Batch</th>
+                                                            <th>Expiry</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach($purchase->items as $item)
+                                                        <tr>
+                                                            <td>{{ $item->product->name }}</td>
+                                                            <td>{{ $item->quantity }}</td>
+                                                            <td>Tsh {{ number_format($item->buying_price, 0) }}</td>
+                                                            <td>Tsh {{ number_format($item->selling_price, 0) }}</td>
+                                                            <td>{{ $item->batch_number ?? '-' }}</td>
+                                                            <td>{{ $item->expiry_date?->format('d M Y') ?? '-' }}</td>
+                                                        </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
                     </tr>
                     @empty
                     <tr>
