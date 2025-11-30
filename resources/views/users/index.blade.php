@@ -13,7 +13,7 @@
 <div class="card">
     <div class="card-body">
         <div class="table-responsive">
-            <table class="table table-hover">
+            <table class="table table-hover" id="usersTable">
                 <thead>
                     <tr>
                         <th>Name</th>
@@ -56,7 +56,25 @@
                 </tbody>
             </table>
         </div>
-        {{ $users->links() }}
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+$(document).ready(function() {
+    $('#usersTable').DataTable({
+        pageLength: 25,
+        order: [[0, 'asc']],
+        columnDefs: [
+            { orderable: false, targets: -1 } // Disable sorting on Actions column
+        ],
+        language: {
+            search: "Search users:",
+            lengthMenu: "Show _MENU_ users per page",
+            info: "Showing _START_ to _END_ of _TOTAL_ users"
+        }
+    });
+});
+</script>
+@endpush

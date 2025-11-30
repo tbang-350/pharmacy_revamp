@@ -32,7 +32,7 @@
         <div class="card">
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table">
+                    <table class="table" id="categoriesTable">
                         <thead>
                             <tr>
                                 <th>Name</th>
@@ -66,9 +66,27 @@
                         </tbody>
                     </table>
                 </div>
-                {{ $categories->links() }}
             </div>
         </div>
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+$(document).ready(function() {
+    $('#categoriesTable').DataTable({
+        pageLength: 25,
+        order: [[0, 'asc']],
+        columnDefs: [
+            { orderable: false, targets: -1 } // Disable sorting on Actions column
+        ],
+        language: {
+            search: "Search categories:",
+            lengthMenu: "Show _MENU_ categories per page",
+            info: "Showing _START_ to _END_ of _TOTAL_ categories"
+        }
+    });
+});
+</script>
+@endpush

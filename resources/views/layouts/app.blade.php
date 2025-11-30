@@ -11,6 +11,9 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
     
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ asset('css/custom.css') }}">
     
@@ -197,8 +200,82 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
+    <!-- jQuery (required for DataTables) -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    
     <!-- Custom JS -->
     <script src="{{ asset('js/app.js') }}"></script>
+    
+    <!-- Global Form Submission Handler -->
+    <script>
+    // Handle all form submissions with spinner animation
+    document.addEventListener('submit', function(e) {
+        const form = e.target;
+        
+        // Skip GET forms (filters/search forms)
+        if (form.method.toUpperCase() === 'GET') {
+            return;
+        }
+        
+        // Skip forms with custom onsubmit handler (like Excel import which already has spinner)
+        if (form.hasAttribute('onsubmit') && form.getAttribute('onsubmit').includes('showImportLoader')) {
+            return;
+        }
+        
+        // Find submit button
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (!submitBtn) return;
+        
+        // Store original button content
+        const originalContent = submitBtn.innerHTML;
+        const originalDisabled = submitBtn.disabled;
+        
+        // Disable button and show spinner
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Processing...';
+        
+        // Re-enable if validation fails (will be caught by browser's built-in validation)
+        setTimeout(() => {
+            if (!form.checkValidity()) {
+                submitBtn.disabled = originalDisabled;
+                submitBtn.innerHTML = originalContent;
+            }
+        }, 100);
+    });
+    
+    // Handle delete forms with confirmation
+    document.addEventListener('click', function(e) {
+        const deleteBtn = e.target.closest('button[type="submit"]');
+        if (!deleteBtn) return;
+        
+        const form = deleteBtn.closest('form');
+        if (!form) return;
+        
+        // Check if it's a delete form (has DELETE method)
+        const methodInput = form.querySelector('input[name="_method"][value="DELETE"]');
+        if (methodInput && deleteBtn.hasAttribute('onclick') && deleteBtn.getAttribute('onclick').includes('confirm')) {
+            // Form already has inline confirm, enhance with spinner after confirmation
+            const originalOnclick = deleteBtn.getAttribute('onclick');
+            deleteBtn.removeAttribute('onclick');
+            
+            deleteBtn.addEventListener('click', function(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                if (confirm('Delete this item?')) {
+                    // Disable button and show spinner
+                    deleteBtn.disabled = true;
+                    deleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+                    form.submit();
+                }
+            }, { once: true });
+        }
+    });
+    </script>
     
     @stack('scripts')
 </body>

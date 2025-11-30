@@ -30,7 +30,7 @@
 <div class="card">
     <div class="card-body">
         <div class="table-responsive">
-            <table class="table table-hover">
+            <table class="table table-hover" id="purchasesTable">
                 <thead>
                     <tr>
                         <th>ID</th>
@@ -39,6 +39,7 @@
                         <th>Items</th>
                         <th>Total</th>
                         <th>User</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -118,7 +119,25 @@
                 </tbody>
             </table>
         </div>
-        {{ $purchases->links() }}
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+$(document).ready(function() {
+    $('#purchasesTable').DataTable({
+        pageLength: 25,
+        order: [[0, 'desc']],
+        columnDefs: [
+            { orderable: false, targets: -1 } // Disable sorting on action column (View Details)
+        ],
+        language: {
+            search: "Search purchases:",
+            lengthMenu: "Show _MENU_ purchases per page",
+            info: "Showing _START_ to _END_ of _TOTAL_ purchases"
+        }
+    });
+});
+</script>
+@endpush

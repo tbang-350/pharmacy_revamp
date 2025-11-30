@@ -66,10 +66,10 @@ class ProductController extends Controller
     {
         $products = Product::with(['category', 'batches' => function($q) {
             $q->where('quantity', '>', 0)->orderBy('expiry_date', 'asc');
-        }])->get();
+        }])->paginate(50);
 
         // Flag low stock
-        $products = $products->map(function($product) {
+        $products->getCollection()->transform(function($product) {
             $product->is_low_stock = $product->current_stock <= $product->reorder_level;
             return $product;
         });

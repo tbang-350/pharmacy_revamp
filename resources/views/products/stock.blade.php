@@ -10,7 +10,7 @@
 <div class="card">
     <div class="card-body">
         <div class="table-responsive">
-            <table class="table table-hover">
+            <table class="table table-hover" id="stockTable">
                 <thead>
                     <tr>
                         <th>Product</th>
@@ -39,8 +39,8 @@
                         </td>
                         <td>
                             @if($product->batches->count() > 0)
-                            <button class="btn btn-sm btn-info" type="button" data-bs-toggle="collapse" 
-                                    data-bs-target="#batches_{{ $product->id }}">
+                            <button class="btn btn-sm btn-info text-white" type="button" data-bs-toggle="modal" 
+                                    data-bs-target="#batchesModal{{ $product->id }}">
                                 View {{ $product->batches->count() }} Batches
                             </button>
                             @else
@@ -48,22 +48,36 @@
                             @endif
                         </td>
                         <td>
-                            <button class="btn btn-sm btn-primary" onclick="updatePrice({{ $product->id }})">
+                            <button class="btn btn-sm btn-primary update-price-btn" data-id="{{ $product->id }}">
                                 Update Price
                             </button>
                         </td>
                     </tr>
-                    @if($product->batches->count() > 0)
-                    <tr>
-                        <td colspan="6" class="p-0">
-                            <div class="collapse" id="batches_{{ $product->id }}">
-                                <table class="table table-sm mb-0">
-                                    <thead>
+
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Batches Modals -->
+        @foreach($products as $product)
+            @if($product->batches->count() > 0)
+            <div class="modal fade" id="batchesModal{{ $product->id }}" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">{{ $product->name }} - Batches</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered mb-0">
+                                    <thead class="table-light">
                                         <tr>
                                             <th>Batch</th>
-                                            <th>Quantity</th>
+                                            <th>Qty</th>
                                             <th>Buying Price</th>
-                                            <th>Expiry Date</th>
+                                            <th>Expiry</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -78,36 +92,88 @@
                                     </tbody>
                                 </table>
                             </div>
-                        </td>
-                    </tr>
-                    @endif
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
+        @endforeach
+
     </div>
 </div>
 @endsection
 
 @push('scripts')
 <script>
+$(document).ready(function() {
+    var table = $('#stockTable').DataTable({
+        pageLength: 25,
+        order: [[0, 'asc']],
+        columnDefs: [
+            { orderable: false, targets: [4, 5] } // Disable sorting on Batches and Action columns
+        ],
+        language: {
+            search: "Search stock:",
+            lengthMenu: "Show _MENU_ items per page",
+            info: "Showing _START_ to _END_ of _TOTAL_ items"
+        }
+    });
+
+    // Handle price update using event delegation
+    $('#stockTable tbody').on('click', '.update-price-btn', function() {
+        var productId = $(this).data('id');
+        updatePrice(productId);
+    });
+});
+
 function updatePrice(productId) {
-    const price = document.getElementById(`price_${productId}`).value;
+    const priceInput = document.getElementById(`price_${productId}`);
+    const price = priceInput.value;
     
-    fetch(`/products/${productId}/update-price`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+    Swal.fire({
+        title: 'Update Price?',
+        text: `Are you sure you want to update the price to ${price}?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, update it!',
+        showLoaderOnConfirm: true,
+        preConfirm: () => {
+            return fetch(`/products/${productId}/update-price`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify({ selling_price: price })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(response.statusText)
+                }
+                return response.json()
+            })
+            .catch(error => {
+                Swal.showValidationMessage(
+                    `Request failed: ${error}`
+                )
+            })
         },
-        body: JSON.stringify({ selling_price: price })
-    })
-    .then(r => r.json())
-    .then(data => {
-        alert('Price updated successfully');
-    })
-    .catch(err => {
-        alert('Failed to update price');
+        allowOutsideClick: () => !Swal.isLoading()
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.fire({
+                title: 'Updated!',
+                text: 'Product price has been updated.',
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        }
     });
 }
 </script>

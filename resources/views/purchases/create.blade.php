@@ -74,7 +74,7 @@
                                     <input type="number" class="form-control" name="items[0][buying_price]" 
                                            required step="0.01" min="0">
                                 </div>
-                                <div class="col-md-2">
+                                <div class="col-md-1">
                                     <label class="form-label">Selling Price</label>
                                     <input type="number" class="form-control" name="items[0][selling_price]" 
                                            required step="0.01" min="0">

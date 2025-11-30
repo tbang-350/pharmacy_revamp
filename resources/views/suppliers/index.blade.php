@@ -13,7 +13,7 @@
 <div class="card">
     <div class="card-body">
         <div class="table-responsive">
-            <table class="table table-hover">
+            <table class="table table-hover" id="suppliersTable">
                 <thead>
                     <tr>
                         <th>Name</th>
@@ -51,7 +51,6 @@
                 </tbody>
             </table>
         </div>
-        {{ $suppliers->links() }}
     </div>
 </div>
 
@@ -96,3 +95,22 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+$(document).ready(function() {
+    $('#suppliersTable').DataTable({
+        pageLength: 25,
+        order: [[0, 'asc']],
+        columnDefs: [
+            { orderable: false, targets: -1 } // Disable sorting on Actions column
+        ],
+        language: {
+            search: "Search suppliers:",
+            lengthMenu: "Show _MENU_ suppliers per page",
+            info: "Showing _START_ to _END_ of _TOTAL_ suppliers"
+        }
+    });
+});
+</script>
+@endpush
