@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
-@section('title', 'Sales Report')
+@section('title', 'Purchase Report')
 
 @section('content')
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">Sales Report</h1>
+    <h1 class="h2">Purchase Report</h1>
 </div>
 
 <!-- Filters -->
@@ -20,12 +20,14 @@
                 <input type="date" class="form-control" name="to_date" value="{{ request('to_date', $toDate->format('Y-m-d')) }}">
             </div>
             <div class="col-md-3">
-                <label class="form-label">Payment Method</label>
-                <select class="form-select" name="payment_method">
-                    <option value="">All</option>
-                    <option value="cash" {{ request('payment_method') == 'cash' ? 'selected' : '' }}>Cash</option>
-                    <option value="bank" {{ request('payment_method') == 'bank' ? 'selected' : '' }}>Bank</option>
-                    <option value="mobile_money" {{ request('payment_method') == 'mobile_money' ? 'selected' : '' }}>Mobile Money</option>
+                <label class="form-label">Supplier</label>
+                <select class="form-select" name="supplier_id">
+                    <option value="">All Suppliers</option>
+                    @foreach(\App\Models\Supplier::all() as $supplier)
+                    <option value="{{ $supplier->id }}" {{ request('supplier_id') == $supplier->id ? 'selected' : '' }}>
+                        {{ $supplier->name }}
+                    </option>
+                    @endforeach
                 </select>
             </div>
             <div class="col-md-3">
@@ -38,71 +40,59 @@
 
 <!-- Summary Cards -->
 <div class="row mb-3">
-    <div class="col-md-4">
+    <div class="col-md-6">
         <div class="card bg-primary text-white">
             <div class="card-body">
-                <h6>Total Sales</h6>
-                <h3>Tsh {{ number_format($totalSales, 0) }}</h3>
+                <h6>Total Purchases</h6>
+                <h3>Tsh {{ number_format($totalPurchases, 0) }}</h3>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card bg-warning text-dark">
-            <div class="card-body">
-                <h6>Total Discount</h6>
-                <h3>Tsh {{ number_format($totalDiscount, 0) }}</h3>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
+    <div class="col-md-6">
         <div class="card bg-success text-white">
             <div class="card-body">
-                <h6>Items Sold</h6>
+                <h6>Items Purchased</h6>
                 <h3>{{ $totalItems }}</h3>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Sales Table -->
+<!-- Purchases Table -->
 <div class="card">
     <div class="card-body">
         <div class="table-responsive">
-            <table class="table table-sm" id="salesReportTable">
+            <table class="table table-sm" id="purchasesReportTable">
                 <thead>
                     <tr>
                         <th>Date</th>
+                        <th>Supplier</th>
                         <th>Items</th>
-                        <th>Subtotal</th>
-                        <th>Discount</th>
                         <th>Total</th>
-                        <th>Payment</th>
-                        <th>Cashier</th>
+                        <th>User</th>
                         <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($sales as $sale)
+                    @foreach($purchases as $purchase)
                     <tr>
-                        <td>{{ $sale->sale_date->format('d M Y H:i') }}</td>
-                        <td>{{ $sale->items->count() }}</td>
-                        <td>Tsh {{ number_format($sale->subtotal, 0) }}</td>
-                        <td>Tsh {{ number_format($sale->discount_amount, 0) }}</td>
-                        <td><strong>Tsh {{ number_format($sale->total_amount, 0) }}</strong></td>
-                        <td>{{ $sale->payment_method_label }}</td>
-                        <td>{{ $sale->user->name }}</td>
+                        <td>{{ $purchase->purchase_date->format('d M Y') }}</td>
+                        <td>{{ $purchase->supplier->name ?? 'N/A' }}</td>
+                        <td>{{ $purchase->items->count() }}</td>
+                        <td><strong>Tsh {{ number_format($purchase->total_amount, 0) }}</strong></td>
+                        <td>{{ $purchase->user->name }}</td>
                         <td>
                             <button type="button" class="btn btn-sm btn-outline-info" 
-                                    data-bs-toggle="modal" data-bs-target="#reportSaleModal{{ $sale->id }}">
+                                    data-bs-toggle="modal" data-bs-target="#reportPurchaseModal{{ $purchase->id }}">
                                 <i class="bi bi-eye"></i>
                             </button>
 
-                            <!-- Sale Details Modal -->
-                            <div class="modal fade" id="reportSaleModal{{ $sale->id }}" tabindex="-1">
+                            <!-- Purchase Details Modal -->
+                            <div class="modal fade" id="reportPurchaseModal{{ $purchase->id }}" tabindex="-1">
                                 <div class="modal-dialog modal-lg">
                                     <div class="modal-content">
                                         <div class="modal-header">
-                                            <h5 class="modal-title">Sale #{{ $sale->id }} Details</h5>
+                                            <h5 class="modal-title">Purchase #{{ $purchase->id }} Details</h5>
                                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                         </div>
                                         <div class="modal-body">
@@ -112,17 +102,17 @@
                                                         <tr>
                                                             <th>Product</th>
                                                             <th>Qty</th>
-                                                            <th>Price</th>
+                                                            <th>Buying Price</th>
                                                             <th>Total</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        @foreach($sale->items as $item)
+                                                        @foreach($purchase->items as $item)
                                                         <tr>
                                                             <td>{{ $item->product->name }}</td>
                                                             <td>{{ $item->quantity }}</td>
-                                                            <td>Tsh {{ number_format($item->unit_price, 0) }}</td>
-                                                            <td>Tsh {{ number_format($item->total, 0) }}</td>
+                                                            <td>Tsh {{ number_format($item->buying_price, 0) }}</td>
+                                                            <td>Tsh {{ number_format($item->total_cost, 0) }}</td>
                                                         </tr>
                                                         @endforeach
                                                     </tbody>
@@ -145,7 +135,7 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
-    $('#salesReportTable').DataTable({
+    $('#purchasesReportTable').DataTable({
         pageLength: 25,
         order: [[0, 'desc']], // Sort by Date descending
         columnDefs: [
