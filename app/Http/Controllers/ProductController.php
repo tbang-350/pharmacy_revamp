@@ -11,7 +11,7 @@ class ProductController extends Controller
 {
     public function index()
     {
-        $products = Product::with('category')->withCount('batches')->paginate(20);
+        $products = Product::with('category')->withCount('batches')->latest()->paginate(20);
         
         return view('products.index', compact('products'));
     }
@@ -66,7 +66,7 @@ class ProductController extends Controller
     {
         $products = Product::with(['category', 'batches' => function($q) {
             $q->where('quantity', '>', 0)->orderBy('expiry_date', 'asc');
-        }])->paginate(50);
+        }])->latest()->paginate(50);
 
         // Flag low stock
         $products->getCollection()->transform(function($product) {

@@ -24,7 +24,7 @@ class ReportController extends Controller
             $query->where('payment_method', $request->payment_method);
         }
 
-        $sales = $query->get();
+        $sales = $query->latest()->get();
         
         $totalSales = $sales->sum('total_amount');
         $totalDiscount = $sales->sum('discount_amount');
@@ -48,7 +48,7 @@ class ReportController extends Controller
             $query->where('supplier_id', $request->supplier_id);
         }
 
-        $purchases = $query->get();
+        $purchases = $query->latest()->get();
         
         $totalPurchases = $purchases->sum('total_amount');
         $totalItems = $purchases->sum(function($purchase) {
@@ -62,7 +62,7 @@ class ReportController extends Controller
     {
         $products = Product::with(['category', 'batches' => function($q) {
             $q->where('quantity', '>', 0);
-        }])->get();
+        }])->latest()->get();
 
         $lowStock = $products->filter(function($product) {
             return $product->current_stock <= $product->reorder_level;
